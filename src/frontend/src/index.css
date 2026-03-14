@@ -1,0 +1,142 @@
+@font-face {
+  font-family: "Fraunces";
+  src: url("/assets/fonts/Fraunces.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Figtree";
+  src: url("/assets/fonts/Figtree.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Fresh market light theme */
+    --background: 0.975 0.008 85;
+    --foreground: 0.18 0.025 260;
+
+    --card: 1 0 0;
+    --card-foreground: 0.18 0.025 260;
+
+    --popover: 1 0 0;
+    --popover-foreground: 0.18 0.025 260;
+
+    /* Botanical green primary */
+    --primary: 0.52 0.165 148;
+    --primary-foreground: 0.99 0 0;
+
+    --secondary: 0.92 0.025 148;
+    --secondary-foreground: 0.3 0.08 148;
+
+    --muted: 0.93 0.012 85;
+    --muted-foreground: 0.52 0.02 260;
+
+    /* Warm coral accent */
+    --accent: 0.65 0.15 52;
+    --accent-foreground: 0.99 0 0;
+
+    --destructive: 0.52 0.19 22;
+    --destructive-foreground: 0.99 0 0;
+
+    --border: 0.88 0.018 85;
+    --input: 0.88 0.018 85;
+    --ring: 0.52 0.165 148;
+
+    --radius: 0.75rem;
+
+    --chart-1: 0.52 0.165 148;
+    --chart-2: 0.65 0.15 52;
+    --chart-3: 0.55 0.12 210;
+    --chart-4: 0.6 0.14 280;
+    --chart-5: 0.55 0.18 25;
+
+    --sidebar: 0.975 0.008 85;
+    --sidebar-foreground: 0.18 0.025 260;
+    --sidebar-primary: 0.52 0.165 148;
+    --sidebar-primary-foreground: 0.99 0 0;
+    --sidebar-accent: 0.92 0.025 148;
+    --sidebar-accent-foreground: 0.3 0.08 148;
+    --sidebar-border: 0.88 0.018 85;
+    --sidebar-ring: 0.52 0.165 148;
+  }
+
+  .dark {
+    --background: 0.14 0.02 260;
+    --foreground: 0.96 0.008 85;
+
+    --card: 0.18 0.022 260;
+    --card-foreground: 0.96 0.008 85;
+
+    --popover: 0.18 0.022 260;
+    --popover-foreground: 0.96 0.008 85;
+
+    --primary: 0.62 0.17 148;
+    --primary-foreground: 0.1 0.015 260;
+
+    --secondary: 0.22 0.025 260;
+    --secondary-foreground: 0.78 0.04 148;
+
+    --muted: 0.22 0.02 260;
+    --muted-foreground: 0.62 0.018 260;
+
+    --accent: 0.7 0.15 52;
+    --accent-foreground: 0.1 0.02 260;
+
+    --destructive: 0.58 0.2 22;
+    --destructive-foreground: 0.99 0 0;
+
+    --border: 0.28 0.025 260;
+    --input: 0.28 0.025 260;
+    --ring: 0.62 0.17 148;
+
+    --chart-1: 0.62 0.17 148;
+    --chart-2: 0.7 0.15 52;
+    --chart-3: 0.6 0.14 210;
+    --chart-4: 0.65 0.14 280;
+    --chart-5: 0.62 0.19 25;
+
+    --sidebar: 0.14 0.02 260;
+    --sidebar-foreground: 0.96 0.008 85;
+    --sidebar-primary: 0.62 0.17 148;
+    --sidebar-primary-foreground: 0.1 0.015 260;
+    --sidebar-accent: 0.22 0.025 260;
+    --sidebar-accent-foreground: 0.78 0.04 148;
+    --sidebar-border: 0.28 0.025 260;
+    --sidebar-ring: 0.62 0.17 148;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-body;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Checkbox custom animation */
+.item-row {
+  transition: opacity 0.25s ease, transform 0.2s ease;
+}
+
+.item-row.purchased {
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item-row {
+    transition: none;
+  }
+}
