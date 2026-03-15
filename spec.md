@@ -1,27 +1,26 @@
 # Collaborative Shopping List
 
 ## Current State
-New project with no existing code.
+A shared shopping list where anyone with the link can add, toggle, and delete items. No authentication -- all users are anonymous and share a single global list.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Shared shopping list stored on Motoko backend, accessible by all users
-- Items with: name, optional quantity, optional unit, category, purchased status
-- Add item form with name (required), quantity, unit, and category fields
-- Check off items as purchased (toggles visual strike-through)
-- Delete individual items
-- Organize items by category (grouped display)
-- Polling or refresh mechanism to sync state across users
-- Mobile-friendly, clean UI
+- Internet Identity sign-in button in the header
+- Signed-in user's display (principal/identity indicator)
+- Sign-out button
+- Each item records who added it (addedBy principal)
+- Items show who added them (optional display)
 
 ### Modify
-- N/A (new project)
+- Header: add Sign In / Sign Out button and user info
+- Backend: track `addedBy` field on ShoppingItem
+- The list remains fully shared -- all signed-in and anonymous users see the same list
 
 ### Remove
-- N/A
+- Nothing removed
 
 ## Implementation Plan
-1. Backend: stable storage for items array; functions: addItem, togglePurchased, deleteItem, getItems, clearPurchased
-2. Frontend: single-page app with grouped list view, add item form, category filter/grouping, item actions
-3. Auto-refresh every few seconds to simulate real-time sync
+1. Select `authorization` Caffeine component
+2. Regenerate backend with `addedBy: Principal` field on ShoppingItem
+3. Frontend: wire up authorization hooks for login/logout, show user identity in header, show "Added by" label on items

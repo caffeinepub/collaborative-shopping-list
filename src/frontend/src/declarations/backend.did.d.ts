@@ -15,18 +15,31 @@ export interface ShoppingItem {
   'name' : string,
   'createdAt' : bigint,
   'unit' : [] | [string],
+  'addedBy' : Principal,
   'purchased' : boolean,
   'quantity' : [] | [number],
   'category' : string,
 }
+export interface UserProfile { 'name' : string }
+export type UserRole = { 'admin' : null } |
+  { 'user' : null } |
+  { 'guest' : null };
 export interface _SERVICE {
+  '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addItem' : ActorMethod<
     [string, [] | [number], [] | [string], string],
     ShoppingItem
   >,
+  'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'clearPurchased' : ActorMethod<[], bigint>,
   'deleteItem' : ActorMethod<[bigint], boolean>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
+  'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getItems' : ActorMethod<[], Array<ShoppingItem>>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'isAnonymous' : ActorMethod<[Principal], boolean>,
+  'isCallerAdmin' : ActorMethod<[], boolean>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'togglePurchased' : ActorMethod<[bigint], ShoppingItem>,
   'updateItem' : ActorMethod<
     [bigint, string, [] | [number], [] | [string], string],

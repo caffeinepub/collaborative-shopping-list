@@ -1,8 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -14,16 +19,20 @@ import { Toaster } from "@/components/ui/sonner";
 import {
   Leaf,
   Loader2,
+  LogIn,
+  LogOut,
   Plus,
   RefreshCw,
   ShoppingBasket,
   ShoppingCart,
   Trash2,
+  User,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import type { ShoppingItem } from "./backend.d";
+import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import {
   useAddItem,
   useClearPurchased,
@@ -90,7 +99,6 @@ function groupByCategory(
     if (!groups[item.category]) groups[item.category] = [];
     groups[item.category].push(item);
   }
-  // Sort items within each group: unpurchased first
   for (const cat of Object.keys(groups)) {
     groups[cat].sort((a, b) => {
       if (a.purchased === b.purchased) return a.name.localeCompare(b.name);
@@ -100,9 +108,15 @@ function groupByCategory(
   return groups;
 }
 
+function shortPrincipal(principal: string): string {
+  if (principal.length <= 11) return principal;
+  return `${principal.slice(0, 5)}…${principal.slice(-3)}`;
+}
+
 function ItemRow({
   item,
   index,
+  myPrincipal,
   onToggle,
   onDelete,
   isToggling,
@@ -110,11 +124,21 @@ function ItemRow({
 }: {
   item: ShoppingItem;
   index: number;
+  myPrincipal: string | null;
   onToggle: (id: bigint) => void;
   onDelete: (id: bigint) => void;
   isToggling: boolean;
   isDeleting: boolean;
 }) {
+  const addedByStr = item.addedBy.toString();
+  const isAnonymous = addedByStr === "2vxsx-fae";
+  const isMe = myPrincipal !== null && addedByStr === myPrincipal;
+  const addedByLabel = isAnonymous
+    ? null
+    : isMe
+      ? "You"
+      : shortPrincipal(addedByStr);
+
   return (
     <motion.div
       layout
@@ -145,13 +169,21 @@ function ItemRow({
         >
           {item.name}
         </span>
-        {(item.quantity !== undefined || item.unit) && (
-          <span className="text-xs text-muted-foreground mt-0.5 block">
-            {item.quantity !== undefined ? item.quantity : ""}
-            {item.quantity !== undefined && item.unit ? " " : ""}
-            {item.unit || ""}
-          </span>
-        )}
+        <div className="flex items-center gap-2 mt-0.5">
+          {(item.quantity !== undefined || item.unit) && (
+            <span className="text-xs text-muted-foreground">
+              {item.quantity !== undefined ? item.quantity : ""}
+              {item.quantity !== undefined && item.unit ? " " : ""}
+              {item.unit || ""}
+            </span>
+          )}
+          {addedByLabel && (
+            <span className="text-xs text-muted-foreground/70 flex items-center gap-0.5">
+              <User className="h-2.5 w-2.5" />
+              {addedByLabel}
+            </span>
+          )}
+        </div>
       </div>
       <Button
         data-ocid={`todo.delete_button.${index}`}
@@ -178,6 +210,13 @@ export default function App() {
   const togglePurchased = useTogglePurchased();
   const deleteItem = useDeleteItem();
   const clearPurchased = useClearPurchased();
+  const { identity, login, clear, isLoggingIn, isInitializing } =
+    useInternetIdentity();
+
+  const isAuthenticated = !!identity && !identity.getPrincipal().isAnonymous();
+  const myPrincipal = isAuthenticated
+    ? identity.getPrincipal().toString()
+    : null;
 
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -282,14 +321,12 @@ export default function App() {
 
           <div className="flex items-center gap-2">
             {!isLoading && (
-              <div className="flex items-center gap-1.5">
-                <Badge
-                  variant="secondary"
-                  className="text-xs font-medium bg-secondary text-secondary-foreground border-0"
-                >
-                  {purchasedCount}/{totalCount}
-                </Badge>
-              </div>
+              <Badge
+                variant="secondary"
+                className="text-xs font-medium bg-secondary text-secondary-foreground border-0"
+              >
+                {purchasedCount}/{totalCount}
+              </Badge>
             )}
             <Button
               data-ocid="header.clear_button"
@@ -304,13 +341,108 @@ export default function App() {
               ) : (
                 <Trash2 className="h-3 w-3 mr-1" />
               )}
-              Clear done
+              <span className="hidden sm:inline">Clear done</span>
             </Button>
+
+            {/* Auth button */}
+            {isInitializing ? (
+              <div className="h-8 w-8 flex items-center justify-center">
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+              </div>
+            ) : isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    data-ocid="auth.open_modal_button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 gap-1.5 text-xs border-primary/30 text-primary hover:bg-primary/10"
+                  >
+                    <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                      <User className="h-2.5 w-2.5 text-primary-foreground" />
+                    </div>
+                    <span className="hidden sm:inline">
+                      {shortPrincipal(myPrincipal!)}
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  data-ocid="auth.dropdown_menu"
+                  align="end"
+                  className="min-w-[160px]"
+                >
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground border-b border-border mb-1">
+                    Signed in
+                  </div>
+                  <DropdownMenuItem
+                    data-ocid="auth.close_button"
+                    onClick={clear}
+                    className="text-sm text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+                  >
+                    <LogOut className="h-3.5 w-3.5 mr-2" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                data-ocid="auth.primary_button"
+                variant="outline"
+                size="sm"
+                onClick={login}
+                disabled={isLoggingIn}
+                className="h-8 gap-1.5 text-xs border-primary/30 text-primary hover:bg-primary/10"
+              >
+                {isLoggingIn ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <LogIn className="h-3.5 w-3.5" />
+                )}
+                <span className="hidden sm:inline">
+                  {isLoggingIn ? "Signing in…" : "Sign in"}
+                </span>
+              </Button>
+            )}
           </div>
         </div>
       </header>
 
       <main className="max-w-xl mx-auto px-4 pb-16 pt-4">
+        {/* Sign-in nudge for anonymous users */}
+        <AnimatePresence>
+          {!isInitializing && !isAuthenticated && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="mb-4 overflow-hidden"
+            >
+              <div className="flex items-center justify-between gap-3 bg-primary/5 border border-primary/20 rounded-lg px-3.5 py-2.5">
+                <p className="text-xs text-foreground/70">
+                  <span className="font-medium text-foreground">Sign in</span>{" "}
+                  to show your name on items you add.
+                </p>
+                <Button
+                  data-ocid="auth.secondary_button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={login}
+                  disabled={isLoggingIn}
+                  className="h-7 px-2.5 text-xs text-primary hover:bg-primary/10 shrink-0"
+                >
+                  {isLoggingIn ? (
+                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                  ) : (
+                    <LogIn className="h-3 w-3 mr-1" />
+                  )}
+                  Sign in
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Add item form */}
         <section className="mb-6">
           <form
@@ -433,7 +565,10 @@ export default function App() {
           )}
 
           {isError && (
-            <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+            <div
+              data-ocid="list.error_state"
+              className="flex flex-col items-center justify-center py-16 gap-3 text-center"
+            >
               <p className="text-sm text-destructive font-medium">
                 Couldn't load your list.
               </p>
@@ -509,6 +644,7 @@ export default function App() {
                               key={item.id.toString()}
                               item={item}
                               index={itemIndex}
+                              myPrincipal={myPrincipal}
                               onToggle={handleToggle}
                               onDelete={handleDelete}
                               isToggling={

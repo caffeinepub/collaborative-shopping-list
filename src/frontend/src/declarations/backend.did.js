@@ -13,20 +13,39 @@ export const ShoppingItem = IDL.Record({
   'name' : IDL.Text,
   'createdAt' : IDL.Int,
   'unit' : IDL.Opt(IDL.Text),
+  'addedBy' : IDL.Principal,
   'purchased' : IDL.Bool,
   'quantity' : IDL.Opt(IDL.Float64),
   'category' : IDL.Text,
 });
+export const UserRole = IDL.Variant({
+  'admin' : IDL.Null,
+  'user' : IDL.Null,
+  'guest' : IDL.Null,
+});
+export const UserProfile = IDL.Record({ 'name' : IDL.Text });
 
 export const idlService = IDL.Service({
+  '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addItem' : IDL.Func(
       [IDL.Text, IDL.Opt(IDL.Float64), IDL.Opt(IDL.Text), IDL.Text],
       [ShoppingItem],
       [],
     ),
+  'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'clearPurchased' : IDL.Func([], [IDL.Nat], []),
   'deleteItem' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
+  'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getItems' : IDL.Func([], [IDL.Vec(ShoppingItem)], ['query']),
+  'getUserProfile' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(UserProfile)],
+      ['query'],
+    ),
+  'isAnonymous' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
+  'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'togglePurchased' : IDL.Func([IDL.Nat], [ShoppingItem], []),
   'updateItem' : IDL.Func(
       [IDL.Nat, IDL.Text, IDL.Opt(IDL.Float64), IDL.Opt(IDL.Text), IDL.Text],
@@ -43,20 +62,39 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Text,
     'createdAt' : IDL.Int,
     'unit' : IDL.Opt(IDL.Text),
+    'addedBy' : IDL.Principal,
     'purchased' : IDL.Bool,
     'quantity' : IDL.Opt(IDL.Float64),
     'category' : IDL.Text,
   });
+  const UserRole = IDL.Variant({
+    'admin' : IDL.Null,
+    'user' : IDL.Null,
+    'guest' : IDL.Null,
+  });
+  const UserProfile = IDL.Record({ 'name' : IDL.Text });
   
   return IDL.Service({
+    '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addItem' : IDL.Func(
         [IDL.Text, IDL.Opt(IDL.Float64), IDL.Opt(IDL.Text), IDL.Text],
         [ShoppingItem],
         [],
       ),
+    'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'clearPurchased' : IDL.Func([], [IDL.Nat], []),
     'deleteItem' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
+    'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getItems' : IDL.Func([], [IDL.Vec(ShoppingItem)], ['query']),
+    'getUserProfile' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(UserProfile)],
+        ['query'],
+      ),
+    'isAnonymous' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
+    'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'togglePurchased' : IDL.Func([IDL.Nat], [ShoppingItem], []),
     'updateItem' : IDL.Func(
         [IDL.Nat, IDL.Text, IDL.Opt(IDL.Float64), IDL.Opt(IDL.Text), IDL.Text],
